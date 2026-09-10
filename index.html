@@ -1,57 +1,144 @@
-# CI/CD Pipeline: GitHub Actions → AWS S3
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CI/CD Pipeline — GitHub Actions to AWS S3</title>
+<style>
+  :root{
+    --bg:#0a0e14;
+    --surface:#12161f;
+    --border:#1f2733;
+    --text:#e4e7eb;
+    --muted:#8a93a6;
+    --live:#2dd4a7;
+    --stage:#f0a857;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    line-height:1.6;
+    padding:64px 24px 40px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:640px;margin:0 auto;}
+  .status{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:'IBM Plex Mono',ui-monospace,'SFMono-Regular',monospace;
+    font-size:13px;color:var(--live);
+    background:rgba(45,212,167,0.08);
+    border:1px solid rgba(45,212,167,0.25);
+    padding:6px 12px;border-radius:20px;
+    margin-bottom:28px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--live);
+    box-shadow:0 0 0 3px rgba(45,212,167,0.15);}
+  h1{
+    font-family:'IBM Plex Mono',ui-monospace,monospace;
+    font-size:clamp(28px,4vw,38px);
+    font-weight:600;
+    letter-spacing:-0.5px;
+    margin-bottom:14px;
+  }
+  .lede{color:var(--muted);font-size:16px;max-width:52ch;margin-bottom:36px;}
+  .meta{
+    font-family:'IBM Plex Mono',ui-monospace,monospace;
+    font-size:13px;color:var(--muted);
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    padding:14px 0;margin-bottom:44px;
+    display:flex;flex-wrap:wrap;gap:8px 24px;
+  }
+  .meta b{color:var(--text);font-weight:500;}
+  .pipeline{margin-bottom:44px;}
+  .pipeline h2{
+    font-size:12px;text-transform:uppercase;letter-spacing:1px;
+    color:var(--muted);font-weight:600;margin-bottom:18px;
+  }
+  .stages{display:flex;flex-direction:column;gap:0;}
+  .stage{
+    display:flex;gap:16px;padding:14px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .stage:last-child{border-bottom:none;}
+  .stage-num{
+    font-family:'IBM Plex Mono',ui-monospace,monospace;
+    font-size:13px;color:var(--stage);
+    min-width:20px;
+  }
+  .stage-body b{display:block;font-size:14.5px;margin-bottom:2px;}
+  .stage-body span{color:var(--muted);font-size:13.5px;}
+  footer{
+    border-top:1px solid var(--border);
+    padding-top:24px;
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;
+    font-size:13px;color:var(--muted);
+  }
+  footer a{color:var(--text);text-decoration:none;border-bottom:1px solid var(--border);}
+  footer a:hover{border-color:var(--live);color:var(--live);}
+  @media (max-width:480px){
+    body{padding:40px 18px 32px;}
+    .meta{flex-direction:column;gap:6px;}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="status"><span class="dot"></span>LIVE — DEPLOYED VIA GITHUB ACTIONS</div>
 
-A static site that deploys itself. Every push to `main` triggers a GitHub
-Actions workflow that syncs the site straight to an S3 bucket — no manual
-upload, no console clicking, live in under a minute.
+    <h1>This page deployed itself.</h1>
+    <p class="lede">
+      Every push to <b>main</b> triggers a GitHub Actions workflow that builds,
+      syncs, and publishes this site to an S3 bucket — no manual upload, no
+      console clicking. Push to deploy.
+    </p>
 
-**Live site:** `http://YOUR-BUCKET.s3-website-us-east-1.amazonaws.com` *(update after deploy)*
+    <div class="meta">
+      <span>host: <b>AWS S3</b></span>
+      <span>ci/cd: <b>GitHub Actions</b></span>
+      <span>last update: <b>Day 2</b></span>
+    </div>
 
-## How it works
+    <div class="pipeline">
+      <h2>How it works</h2>
+      <div class="stages">
+        <div class="stage">
+          <div class="stage-num">01</div>
+          <div class="stage-body">
+            <b>Push to main</b>
+            <span>A commit lands on the main branch of the repo.</span>
+          </div>
+        </div>
+        <div class="stage">
+          <div class="stage-num">02</div>
+          <div class="stage-body">
+            <b>Workflow triggers</b>
+            <span>GitHub Actions spins up an Ubuntu runner automatically.</span>
+          </div>
+        </div>
+        <div class="stage">
+          <div class="stage-num">03</div>
+          <div class="stage-body">
+            <b>AWS credentials configured</b>
+            <span>Short-lived session set up from repo secrets — no keys in code.</span>
+          </div>
+        </div>
+        <div class="stage">
+          <div class="stage-num">04</div>
+          <div class="stage-body">
+            <b>Sync to S3</b>
+            <span><code>aws s3 sync</code> publishes the changed files. Site is live in seconds.</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
-```
-Push to main → GitHub Actions runner → AWS credentials configured
-             → aws s3 sync → S3 static website → live
-```
-
-1. **Trigger** — a commit lands on `main`.
-2. **Build runner** — GitHub Actions spins up a clean Ubuntu environment.
-3. **Auth** — AWS credentials are pulled from encrypted GitHub Secrets, never committed to the repo.
-4. **Deploy** — `aws s3 sync` pushes only the changed files to the bucket.
-5. **Live** — the S3 static website endpoint serves the update immediately.
-
-## Stack
-
-- **GitHub Actions** — CI/CD orchestration (`.github/workflows/deploy.yml`)
-- **AWS S3** — static website hosting
-- **AWS IAM** — a scoped-down deploy user, credentials never touch local disk
-- **GitHub Secrets** — encrypted storage for `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `S3_BUCKET`
-
-## Proof of a working pipeline
-
-Five consecutive workflow runs, including two failures that were diagnosed
-and fixed (a misconfigured region, then a bad commit) — the kind of thing
-that happens on every real pipeline:
-
-- ✅ GitHub Actions run history — build, fix, and deploy cycle
-- ✅ Live site reflecting a content update (Day 1 → Day 2), confirming the
-  auto-deploy actually works end to end
-
-*(screenshots in `/docs` or attached to the repo's About section)*
-
-## Running this yourself
-
-```bash
-git clone https://github.com/Ogyanframa10/YOUR-REPO-NAME.git
-cd YOUR-REPO-NAME
-```
-
-1. Create an S3 bucket, enable static website hosting, and attach a public-read bucket policy.
-2. Create an IAM user scoped to S3 access for this bucket, generate an access key.
-3. Add `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `S3_BUCKET` as repo secrets under **Settings → Secrets and variables → Actions**.
-4. Push to `main` — the workflow in `.github/workflows/deploy.yml` handles the rest.
-
-## Next steps
-
-- Front the bucket with **CloudFront** for HTTPS and a CDN
-- Add a `cloudfront create-invalidation` step so cache doesn't serve stale content
-- Split `develop` → staging bucket, `main` → production bucket
+    <footer>
+      <span>Built by Ogyanframa10</span>
+      <a href="https://github.com/Ogyanframa10" target="_blank">github.com/Ogyanframa10</a>
+    </footer>
+  </div>
+</body>
+</html>
